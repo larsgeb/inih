@@ -24,11 +24,11 @@ extern "C" {
 #include <stdio.h>
 
 /* Typedef for prototype of handler function. */
-typedef int (*ini_handler)(void* user, const char* section,
-                           const char* name, const char* value);
+typedef int (*ini_handler)(void *user, const char *section,
+                           const char *name, const char *value);
 
 /* Typedef for prototype of fgets-style reader function. */
-typedef char* (*ini_reader)(char* str, int num, void* stream);
+typedef char *(*ini_reader)(char *str, int num, void *stream);
 
 /* Parse given INI-style file. May have [section]s, name=value pairs
    (whitespace stripped), and comments starting with ';' (semicolon). Section
@@ -43,16 +43,16 @@ typedef char* (*ini_reader)(char* str, int num, void* stream);
    stop on first error), -1 on file open error, or -2 on memory allocation
    error (only when INI_USE_STACK is zero).
 */
-int ini_parse(const char* filename, ini_handler handler, void* user);
+int ini_parse(const char *filename, ini_handler handler, void *user);
 
 /* Same as ini_parse(), but takes a FILE* instead of filename. This doesn't
    close the file when it's finished -- the caller must do that. */
-int ini_parse_file(FILE* file, ini_handler handler, void* user);
+int ini_parse_file(FILE *file, ini_handler handler, void *user);
 
 /* Same as ini_parse(), but takes an ini_reader function pointer instead of
    filename. Used for implementing custom or string-based I/O. */
-int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
-                     void* user);
+int ini_parse_stream(ini_reader reader, void *stream, ini_handler handler,
+                     void *user);
 
 /* Nonzero to allow multi-line value parsing, in the style of Python's
    configparser. If allowed, ini_parse() will call the handler with the same
@@ -84,7 +84,7 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
 
 /* Stop parsing on first error (default is to keep parsing). */
 #ifndef INI_STOP_ON_FIRST_ERROR
-#define INI_STOP_ON_FIRST_ERROR 0
+#define INI_STOP_ON_FIRST_ERROR 1
 #endif
 
 /* Maximum line length for any line in INI file. */
@@ -121,32 +121,29 @@ https://github.com/benhoyt/inih
 #define MAX_NAME 50
 
 /* Strip whitespace chars off end of given string, in place. Return s. */
-inline static char* rstrip(char* s)
-{
-    char* p = s + strlen(s);
-    while (p > s && isspace((unsigned char)(*--p)))
+inline static char *rstrip(char *s) {
+    char *p = s + strlen(s);
+    while (p > s && isspace((unsigned char) (*--p)))
         *p = '\0';
     return s;
 }
 
 /* Return pointer to first non-whitespace char in given string. */
-inline static char* lskip(const char* s)
-{
-    while (*s && isspace((unsigned char)(*s)))
+inline static char *lskip(const char *s) {
+    while (*s && isspace((unsigned char) (*s)))
         s++;
-    return (char*)s;
+    return (char *) s;
 }
 
 /* Return pointer to first char (of chars) or inline comment in given string,
    or pointer to null at end of string if neither found. Inline comment must
    be prefixed by a whitespace character to register as a comment. */
-inline static char* find_chars_or_comment(const char* s, const char* chars)
-{
+inline static char *find_chars_or_comment(const char *s, const char *chars) {
 #if INI_ALLOW_INLINE_COMMENTS
     int was_space = 0;
     while (*s && (!chars || !strchr(chars, *s)) &&
            !(was_space && strchr(INI_INLINE_COMMENT_PREFIXES, *s))) {
-        was_space = isspace((unsigned char)(*s));
+        was_space = isspace((unsigned char) (*s));
         s++;
     }
 #else
@@ -154,21 +151,19 @@ inline static char* find_chars_or_comment(const char* s, const char* chars)
         s++;
     }
 #endif
-    return (char*)s;
+    return (char *) s;
 }
 
 /* Version of strncpy that ensures dest (size bytes) is null-terminated. */
-inline static char* strncpy0(char* dest, const char* src, size_t size)
-{
+inline static char *strncpy0(char *dest, const char *src, size_t size) {
     strncpy(dest, src, size);
     dest[size - 1] = '\0';
     return dest;
 }
 
 /* See documentation in header file. */
-inline int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
-                     void* user)
-{
+inline int ini_parse_stream(ini_reader reader, void *stream, ini_handler handler,
+                            void *user) {
     /* Uses a fair bit of stack (use heap instead if you need to) */
 #if INI_USE_STACK
     char line[INI_MAX_LINE];
@@ -178,10 +173,10 @@ inline int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler
     char section[MAX_SECTION] = "";
     char prev_name[MAX_NAME] = "";
 
-    char* start;
-    char* end;
-    char* name;
-    char* value;
+    char *start;
+    char *end;
+    char *name;
+    char *value;
     int lineno = 0;
     int error = 0;
 
@@ -198,9 +193,9 @@ inline int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler
 
         start = line;
 #if INI_ALLOW_BOM
-        if (lineno == 1 && (unsigned char)start[0] == 0xEF &&
-                           (unsigned char)start[1] == 0xBB &&
-                           (unsigned char)start[2] == 0xBF) {
+        if (lineno == 1 && (unsigned char) start[0] == 0xEF &&
+            (unsigned char) start[1] == 0xBB &&
+            (unsigned char) start[2] == 0xBF) {
             start += 3;
         }
 #endif
@@ -214,10 +209,10 @@ inline int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler
         else if (*prev_name && *start && start > line) {
 
 #if INI_ALLOW_INLINE_COMMENTS
-        end = find_chars_or_comment(start, NULL);
-        if (*end)
-            *end = '\0';
-        rstrip(start);
+            end = find_chars_or_comment(start, NULL);
+            if (*end)
+                *end = '\0';
+            rstrip(start);
 #endif
 
             /* Non-blank line with leading whitespace, treat as continuation
@@ -233,13 +228,11 @@ inline int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler
                 *end = '\0';
                 strncpy0(section, start + 1, sizeof(section));
                 *prev_name = '\0';
-            }
-            else if (!error) {
+            } else if (!error) {
                 /* No ']' found on section line */
                 error = lineno;
             }
-        }
-        else if (*start) {
+        } else if (*start) {
             /* Not a comment, must be a name[=:]value pair */
             end = find_chars_or_comment(start, "=:");
             if (*end == '=' || *end == ':') {
@@ -257,8 +250,7 @@ inline int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler
                 strncpy0(prev_name, name, sizeof(prev_name));
                 if (!handler(user, section, name, value) && !error)
                     error = lineno;
-            }
-            else if (!error) {
+            } else if (!error) {
                 /* No '=' or ':' found on name[=:]value line */
                 error = lineno;
             }
@@ -278,15 +270,13 @@ inline int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler
 }
 
 /* See documentation in header file. */
-inline int ini_parse_file(FILE* file, ini_handler handler, void* user)
-{
-    return ini_parse_stream((ini_reader)fgets, file, handler, user);
+inline int ini_parse_file(FILE *file, ini_handler handler, void *user) {
+    return ini_parse_stream((ini_reader) fgets, file, handler, user);
 }
 
 /* See documentation in header file. */
-inline int ini_parse(const char* filename, ini_handler handler, void* user)
-{
-    FILE* file;
+inline int ini_parse(const char *filename, ini_handler handler, void *user) {
+    FILE *file;
     int error;
 
     file = fopen(filename, "r");
@@ -309,8 +299,7 @@ inline int ini_parse(const char* filename, ini_handler handler, void* user)
 
 // Read an INI file into easy-to-access name/value pairs. (Note that I've gone
 // for simplicity here rather than speed, but it should be pretty decent.)
-class INIReader
-{
+class INIReader {
 public:
     // Empty Constructor
     INIReader() {};
@@ -328,11 +317,15 @@ public:
     int ParseError() const;
 
     // Return the list of sections found in ini file
-    const std::set<std::string>& Sections() const;
+    const std::set<std::string> &Sections() const;
 
     // Get a string value from INI file, returning default_value if not found.
     std::string Get(std::string section, std::string name,
                     std::string default_value) const;
+
+    // Get a string value from INI file, returning default_value if not found.
+    std::string Get_suppress(std::string section, std::string name,
+                             std::string default_value) const;
 
     // Get an integer (long) value from INI file, returning default_value if
     // not found or not a valid integer (decimal "1234", "-1234", or hex "0x4d2").
@@ -352,9 +345,11 @@ protected:
     int _error;
     std::map<std::string, std::string> _values;
     std::set<std::string> _sections;
+
     static std::string MakeKey(std::string section, std::string name);
-    static int ValueHandler(void* user, const char* section, const char* name,
-                            const char* value);
+
+    static int ValueHandler(void *user, const char *section, const char *name,
+                            const char *value);
 };
 
 #endif  // __INIREADER_H__
@@ -367,76 +362,94 @@ protected:
 #include <cctype>
 #include <cstdlib>
 
-inline INIReader::INIReader(std::string filename)
-{
+inline INIReader::INIReader(std::string filename) {
     _error = ini_parse(filename.c_str(), ValueHandler, this);
 }
 
-inline INIReader::INIReader(FILE *file)
-{
+inline INIReader::INIReader(FILE *file) {
     _error = ini_parse_file(file, ValueHandler, this);
 }
 
-inline int INIReader::ParseError() const
-{
+inline int INIReader::ParseError() const {
     return _error;
 }
 
-inline const std::set<std::string>& INIReader::Sections() const
-{
+inline const std::set<std::string> &INIReader::Sections() const {
     return _sections;
 }
 
-inline std::string INIReader::Get(std::string section, std::string name, std::string default_value) const
-{
+inline std::string INIReader::Get(std::string section, std::string name, std::string default_value) const {
     std::string key = MakeKey(section, name);
-    return _values.count(key) ? _values.at(key) : default_value;
+    if (_values.count(key)) {
+        return _values.at(key);
+    } else {
+        std::cout << "Using default value (" << default_value << ") for " << section << "." << name << "." << std::endl;
+        return default_value;
+    }
 }
 
-inline long INIReader::GetInteger(std::string section, std::string name, long default_value) const
-{
-    std::string valstr = Get(section, name, "");
-    const char* value = valstr.c_str();
-    char* end;
+inline std::string INIReader::Get_suppress(std::string section, std::string name, std::string default_value) const {
+    std::string key = MakeKey(section, name);
+    if (_values.count(key)) {
+        return _values.at(key);
+    } else {
+        return default_value;
+    }
+}
+
+inline long INIReader::GetInteger(std::string section, std::string name, long default_value) const {
+    std::string valstr = Get_suppress(section, name, "");
+    const char *value = valstr.c_str();
+    char *end;
     // This parses "1234" (decimal) and also "0x4D2" (hex)
     long n = strtol(value, &end, 0);
-    return end > value ? n : default_value;
+    if (end > value) {
+        return n;
+    } else {
+        std::cout << "Using default value (" << default_value << ") for " << section << "." << name << "." << std::endl;
+        return default_value;
+    }
+//    return end > value ? n : default_value;
 }
 
-inline double INIReader::GetReal(std::string section, std::string name, double default_value) const
-{
-    std::string valstr = Get(section, name, "");
-    const char* value = valstr.c_str();
-    char* end;
+inline double INIReader::GetReal(std::string section, std::string name, double default_value) const {
+    std::string valstr = Get_suppress(section, name, "");
+    const char *value = valstr.c_str();
+    char *end;
     double n = strtod(value, &end);
-    return end > value ? n : default_value;
+    if (end > value) {
+        return n;
+    } else {
+        std::cout << "Using default value (" << default_value << ") for " << section << "." << name << "." << std::endl;
+        return default_value;
+    }
 }
 
-inline bool INIReader::GetBoolean(std::string section, std::string name, bool default_value) const
-{
-    std::string valstr = Get(section, name, "");
+inline bool INIReader::GetBoolean(std::string section, std::string name, bool default_value) const {
+    std::string valstr = Get_suppress(section, name, "");
     // Convert to lower case to make string comparisons case-insensitive
     std::transform(valstr.begin(), valstr.end(), valstr.begin(), ::tolower);
-    if (valstr == "true" || valstr == "yes" || valstr == "on" || valstr == "1")
+    if (valstr == "true" || valstr == "yes" || valstr == "on" || valstr == "1") {
         return true;
-    else if (valstr == "false" || valstr == "no" || valstr == "off" || valstr == "0")
+    } else if (valstr == "false" || valstr == "no" || valstr == "off" || valstr == "0") {
         return false;
-    else
+    } else {
+        std::cout << "Using default value (" << default_value << ") for " << section << "." << name << "." << std::endl;
         return default_value;
+    }
+
 }
 
-inline std::string INIReader::MakeKey(std::string section, std::string name)
-{
+inline std::string INIReader::MakeKey(std::string section, std::string name) {
     std::string key = section + "=" + name;
     // Convert to lower case to make section/name lookups case-insensitive
     std::transform(key.begin(), key.end(), key.begin(), ::tolower);
     return key;
 }
 
-inline int INIReader::ValueHandler(void* user, const char* section, const char* name,
-                            const char* value)
-{
-    INIReader* reader = (INIReader*)user;
+inline int INIReader::ValueHandler(void *user, const char *section, const char *name,
+                                   const char *value) {
+    INIReader *reader = (INIReader *) user;
     std::string key = MakeKey(section, name);
     if (reader->_values[key].size() > 0)
         reader->_values[key] += "\n";
