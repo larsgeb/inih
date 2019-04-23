@@ -1,5 +1,7 @@
 # inih
-[![Build Status](https://travis-ci.org/jtilly/inih.svg?branch=master)](https://travis-ci.org/jtilly/inih)
+[![Build Status](https://travis-ci.com/larsgeb/inih.svg?branch=master)](https://travis-ci.com/larsgeb/inih)
+
+This is a fork of the original C++ inih: https://github.com/jtilly/inih.
 
 This is a header only C++ version of [inih](https://github.com/benhoyt/inih).
 
@@ -39,3 +41,5 @@ g++ INIReaderTest.cpp -o INIReaderTest.out
 ./INIReaderTest.out
 # Config loaded from 'test.ini': version=6, name=Bob Smith, email=bob@smith.com, pi=3.14159, active=1
 ```
+
+... or use the CMake file.
