@@ -383,7 +383,7 @@ inline std::string INIReader::Get(std::string section, std::string name, std::st
     if (_values.count(key)) {
         return _values.at(key);
     } else {
-        std::cout << "Using default value (" << default_value << ") for " << section << "." << name << "." << std::endl;
+        std::cout << "Using default value ('" << default_value << "') for " << section << "." << name << "." << std::endl;
         return default_value;
     }
 }
